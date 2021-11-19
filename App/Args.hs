@@ -19,7 +19,8 @@ data Options = Options
     optTable :: Bool,
     optFold :: Bool,
     optFolds :: Int,
-    optTableArgs :: Maybe String
+    optTableArgs :: Maybe String,
+    optDebug :: Bool
   }
   deriving (Show)
 
@@ -36,7 +37,8 @@ defaultOptions =
       optTable = False,
       optFold = False,
       optFolds = 0,
-      optTableArgs = Nothing
+      optTableArgs = Nothing,
+      optDebug = False
     }
 
 options :: [OptDescr (Options -> Options)]
@@ -96,7 +98,12 @@ options =
           ((\f opts -> opts {optTableArgs = Just f}) . fromMaybe "input")
           "Table Contents"
       )
-      "Put contents of Table Heads"
+      "Put contents of Table Heads",
+    Option
+      ['D', 'd']
+      ["debug"]
+      (NoArg (\opts -> opts {optDebug = True}))
+      "show debug information"
   ]
 
 compilerOpts :: [String] -> IO (Options, [String])
