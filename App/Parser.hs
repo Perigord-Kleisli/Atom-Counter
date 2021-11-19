@@ -1,6 +1,10 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# OPTIONS_GHC -haddock #-}
 
+-- Converts Strings into arrays of Elements
+-- > parseFormula "Au_2(Bc_3)_2"
+-- =: Right [Leaf ("Au",2)]
+
 module App.Parser where
 
 import Data.Bifunctor (Bifunctor (second))
@@ -15,7 +19,6 @@ import Data.Either
   )
 import Data.Function ()
 import Data.List (groupBy, (\\))
-import System.IO ()
 import Text.RawString.QQ (r)
 import Text.Regex.PCRE (MatchResult (mrBefore), (=~))
 
@@ -158,12 +161,3 @@ elemsToStr = filter (/= '₁') . concatMap fromElem
     fromElem :: Element -> String
     fromElem (Leaf (al, ar)) = al ++ toSubscript ar
     fromElem (Branch (al, ar)) = "(" ++ concatMap fromElem al ++ ")" ++ toSubscript ar
-
--- test x = do
---   either putStrLn (putStrLn . ("Unfolded: " ++) . elemsToStr) $ parseFormula x
---   either putStrLn (putStrLn . ("Folded: " ++) . elemsToStr) $ foldParseFormula x
-
--- main :: IO ()
--- main = do
---   x <- getLine
---   test x
