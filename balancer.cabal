@@ -18,10 +18,9 @@ extra-source-files:  CHANGELOG.md
 
 executable balancer
   main-is:             Main.hs
-  -- other-modules:
+  other-modules:       App.Parser
   -- other-extensions:
   build-depends:       base >=4.14 && <4.15,
                        regex-pcre >= 0.94,
                        raw-strings-qq >=1.1
-  -- hs-source-dirs:
   default-language:    Haskell2010
