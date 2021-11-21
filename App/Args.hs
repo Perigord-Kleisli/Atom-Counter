@@ -12,7 +12,6 @@ data Options = Options
     optHelpPage :: Bool,
     optBalancing :: Bool,
     optLatex :: Bool,
-    optChemfig :: Bool,
     optConsole :: Bool,
     optShow :: Bool,
     optVersion :: Bool,
@@ -30,7 +29,6 @@ defaultOptions =
       optHelpPage = False,
       optBalancing = False,
       optLatex = False,
-      optChemfig = False,
       optConsole = True,
       optShow = False,
       optVersion = False,
@@ -59,10 +57,10 @@ options =
       (NoArg (\opts -> opts {optLatex = True}))
       "Send output as a latex formula",
     Option
-      ['C']
-      ["chemfig"]
-      (NoArg (\opts -> opts {optChemfig = True}))
-      "Send latex output as Chemfig",
+      ['v', 'V']
+      ["version"]
+      (NoArg (\opts -> opts {optVersion = True}))
+      "Show program version",
     Option
       ['c']
       ["console"]

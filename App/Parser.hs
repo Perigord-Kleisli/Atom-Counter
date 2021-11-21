@@ -28,9 +28,8 @@ data SyntaxTree a b = Leaf (a, b) | Branch ([SyntaxTree a b], b)
 -- | fst: Name snd: Data
 type Element = SyntaxTree String Int
 
-findDelimEnd :: String -> String
-
 -- | Does not provide error on unbalanced delimeters however
+findDelimEnd :: String -> String
 findDelimEnd [] = []
 findDelimEnd (x : xs) = '(' : findDelimEnd' xs
   where
@@ -42,9 +41,8 @@ findDelimEnd (x : xs) = '(' : findDelimEnd' xs
       where
         postMidDelim = ys \\ findDelimEnd' ys
 
-formHead :: String -> Either String String
-
 -- | Get the first valid formula
+formHead :: String -> Either String String
 formHead [] = Left "Empty formula"
 formHead xs
   | null xs && null x = Right []
@@ -55,10 +53,8 @@ formHead xs
       | head xs == '(' = findDelimEnd xs
       | otherwise = xs =~ [r|^[A-Z][a-z]?(_[0-9]+)?|] :: String
 
-formTail :: String -> Either String String
-
--- | Get string past first valid formula
 -- | (The tail is not checked for validity)
+formTail :: String -> Either String String
 formTail xs
   | null xs && null x = Right []
   | null x = Left $ "Invalid formula: " ++ takeWhile (not . isUpper) xs
@@ -68,9 +64,8 @@ formTail xs
       | head xs == '(' = findDelimEnd xs
       | otherwise = xs =~ [r|^[A-Z][a-z]?(_[0-9]+)?|] :: String
 
-formArray :: String -> [Either String String]
-
 -- | Make a list of all the valid formulas
+formArray :: String -> [Either String String]
 formArray a
   | null xl = map Right $ filter (/= "()") $ init xr
   | otherwise = [Left $ head xl]
@@ -81,9 +76,8 @@ formArray a
     formArray' (Right xs) = formHead xs : formArray' (formTail xs)
     (xl, xr) = partitionEithers $ formArray' $ Right a
 
-formToSTree :: Either String String -> Either String Element
-
 -- | Takes a single formula and parses it into an Element
+formToSTree :: Either String String -> Either String Element
 formToSTree (Left x) = Left x
 formToSTree (Right ('(' : as))
   | isLeft $ head formList = Left $ (head . lefts) formList
@@ -109,60 +103,51 @@ formToSTree (Right as) = Right $ Leaf $ second read $ complete $ splitOn (== '_'
         tail' as = tail as
         xl = takeWhile (not . f) xs
 
-parseFormula :: String -> Either String [Element]
-
--- | Parses the formula but does not fold it
-parseFormula xs =
+-- | Parses the formula and folds it x times
+parseFormula :: String -> Int -> Either String [Element]
+parseFormula xs n =
   either
     (Left . (++ " in: " ++ xs))
-    Right
+    (Right . applyNTimes n fold1Level)
     $ sequence $ parseFormula' xs
   where
     parseFormula' ys = map formToSTree (formArray $ filter (/= ' ') ys)
 
-leafOrBranch :: (b -> b) -> (b -> b) -> SyntaxTree a b -> SyntaxTree a b
-
 -- | Map a node  based on wether its a branch or leaf
+leafOrBranch :: (b -> b) -> (b -> b) -> SyntaxTree a b -> SyntaxTree a b
 leafOrBranch fl _ (Leaf (xa, xb)) = Leaf (xa, fl xb)
 leafOrBranch _ fb (Branch (xa, xb)) = Branch (xa, fb xb)
 
-liftBranch :: (b -> b -> b) -> SyntaxTree a b -> [SyntaxTree a b]
-
 -- | turn a branch into an array of leaves and branches with a lifting value to their data
+liftBranch :: (b -> b -> b) -> SyntaxTree a b -> [SyntaxTree a b]
 liftBranch f (Branch (xl, xr)) = map (leafOrBranch (xr `f`) (xr `f`)) xl
 liftBranch _ (Leaf x) = [Leaf x]
 
-fold1Level :: [Element] -> [Element]
-
 -- | Lift all branches in a list once
+fold1Level :: [Element] -> [Element]
 fold1Level = concatMap (liftBranch (*))
 
-minimalFormula :: Either String [Element] -> Either String [Element]
-
 -- | Lifts all branches until only leaves remain
+minimalFormula :: Either String [Element] -> Either String [Element]
 minimalFormula (Left x) = Left x
 minimalFormula (Right x) = undefined
 
-combineSames :: [Element] -> [Element]
-
 -- | Combine elements with the same names
+combineSames :: [Element] -> [Element]
 combineSames x =
   map (Leaf . foldl (\(_, ar) (bl, br) -> (bl, ar + br)) ("", 0)) $
     groupBy (\(a, _) (b, _) -> a == b) $ map (\(Leaf x) -> x) x
 
-untilLeafArray :: Element -> [Element]
-
 -- | Repeatedly folds a branch until it is comprised only by leaves then combines everything with the same names
+untilLeafArray :: Element -> [Element]
 untilLeafArray (Leaf x) = [Leaf x]
 untilLeafArray xl = concatMap untilLeafArray $ fold1Level [xl]
 
 foldParseFormula :: String -> Either String [Element]
-foldParseFormula x = filter (\(Leaf (_, xr)) -> xr /= 0) . combineSames . concatMap untilLeafArray <$> parseFormula x
+foldParseFormula x =
+  filter (\(Leaf (_, xr)) -> xr /= 0) . combineSames . concatMap untilLeafArray
+    <$> parseFormula x 1
 
--- foldParseFormula :: String -> Either String [Element]
--- foldParseFormula x =
---   if isLeft xs
---     then xs
---     else Right $ filter (\(Leaf (_, xr)) -> xr /= 0) $ combineSames $ concatMap untilLeafArray $ fromRight [] xs
---   where
---     xs = parseFormula x
+applyNTimes :: Int -> (a -> a) -> a -> a
+applyNTimes 0 _ x = x
+applyNTimes n f x = applyNTimes (n - 1) f $ f x

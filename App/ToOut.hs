@@ -7,9 +7,12 @@ import Data.Char (chr, ord)
 toSubscript :: Int -> String
 toSubscript = map (chr . (+ 8272) . ord) . show
 
-elemsToStr :: [Element] -> String
-elemsToStr = filter (/= '₁') . concatMap fromElem
+toLatexSub :: Int -> String
+toLatexSub x = "_{" ++ show x ++ "}"
+
+elemsToStr :: (Int -> String) -> [Element] -> String
+elemsToStr f = filter (/= '₁') . concatMap fromElem
   where
     fromElem :: Element -> String
-    fromElem (Leaf (al, ar)) = al ++ toSubscript ar
-    fromElem (Branch (al, ar)) = "(" ++ concatMap fromElem al ++ ")" ++ toSubscript ar
+    fromElem (Leaf (al, ar)) = al ++ f ar
+    fromElem (Branch (al, ar)) = "(" ++ concatMap fromElem al ++ ")" ++ f ar
