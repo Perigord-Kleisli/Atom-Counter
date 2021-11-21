@@ -30,7 +30,6 @@ lobby
       },
     xr
     )
-    | otherwise = Left $ print tableArgs
     | sum (fromEnum <$> [showHaskCode, showLatex]) > 1 = Left $ putStrLn "Error: output method mixing"
     | showVersion = Right $ "Version: " ++ Data.Version.showVersion Paths_Atom_counter.version
     | showHaskCode = metaParse show
