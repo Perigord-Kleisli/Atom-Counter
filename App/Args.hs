@@ -12,13 +12,10 @@ data Options = Options
     optHelpPage :: Bool,
     optBalancing :: Bool,
     optLatex :: Bool,
-    optConsole :: Bool,
     optShow :: Bool,
     optVersion :: Bool,
-    optTable :: Bool,
     optFold :: Bool,
     optFolds :: Int,
-    optTableArgs :: Maybe String,
     optDebug :: Bool
   }
   deriving (Show)
@@ -29,13 +26,10 @@ defaultOptions =
       optHelpPage = False,
       optBalancing = False,
       optLatex = False,
-      optConsole = True,
       optShow = False,
       optVersion = False,
-      optTable = False,
       optFold = False,
       optFolds = 0,
-      optTableArgs = Nothing,
       optDebug = False
     }
 
@@ -45,7 +39,7 @@ options =
       ['i', 'I']
       ["interactive"]
       (NoArg (\opts -> opts {optInteractive = True}))
-      "Use STDIN instead of console arguments",
+      "Use STDIN instead of console arguments, type :q to quit",
     Option
       ['b', 'B']
       ["balance"]
@@ -62,20 +56,10 @@ options =
       (NoArg (\opts -> opts {optVersion = True}))
       "Show program version",
     Option
-      ['c']
-      ["console"]
-      (NoArg (\opts -> opts {optConsole = True}))
-      "Sent output as unicode",
-    Option
       ['s', 'S']
       ["show"]
       (NoArg (\opts -> opts {optShow = True}))
       "Show output via actual value in haskell",
-    Option
-      ['t']
-      ["table"]
-      (NoArg (\opts -> opts {optInteractive = True}))
-      "Send output as GNU org-mode table",
     Option
       ['f']
       ["fold"]
@@ -89,14 +73,6 @@ options =
           "NUMBER"
       )
       "Fold formula a number of times",
-    Option
-      ['T']
-      ["tableconts"]
-      ( OptArg
-          ((\f opts -> opts {optTableArgs = Just f}) . fromMaybe "input")
-          "Table Contents"
-      )
-      "Put contents of Table Heads",
     Option
       ['D', 'd']
       ["debug"]

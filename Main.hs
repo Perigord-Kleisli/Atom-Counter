@@ -1,6 +1,5 @@
 module Main where
 
-import App.Args (Options (optConsole))
 import qualified App.Args as A
 import App.Parser (applyNTimes)
 import qualified App.Parser as P
@@ -19,22 +18,20 @@ lobby
       { A.optInteractive = isInteractive,
         A.optBalancing = isBalanceMode,
         A.optLatex = showLatex,
-        A.optConsole = showUnicode,
         A.optShow = showHaskCode,
         A.optVersion = showVersion,
-        A.optTable = showTable,
         A.optFold = maxFold,
         A.optFolds = numOfFolds,
-        A.optTableArgs = tableArgs,
         A.optDebug = isDebug
       },
     xr
     )
     | sum (fromEnum <$> [showHaskCode, showLatex]) > 1 = Left $ putStrLn "Error: output method mixing"
+    | sum (fromEnum <$> [showHaskCode, showLatex]) == 0 = metaParse $ O.elemsToStr O.toSubscript
     | showVersion = Right $ "Version: " ++ Data.Version.showVersion Paths_Atom_counter.version
     | showHaskCode = metaParse show
     | showLatex = metaParse $ (\a b -> ("(\\" ++) $ (++ "\\)") $ O.elemsToStr a b) O.toLatexSub
-    | showUnicode = metaParse $ O.elemsToStr O.toSubscript
+    | otherwise = Left $ putStrLn "Error"
     where
       metaParse :: ([P.Element] -> String) -> Either (IO ()) String
       metaParse f

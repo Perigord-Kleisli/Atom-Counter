@@ -1,4 +1,5 @@
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -haddock #-}
 
 -- Converts Strings into arrays of Elements
@@ -91,17 +92,11 @@ formToSTree (Right ('(' : as))
     complete :: String -> Int
     complete [] = 1
     complete b = read b :: Int
-formToSTree (Right as) = Right $ Leaf $ second read $ complete $ splitOn (== '_') as
+formToSTree (Right as) = Right $ Leaf $ second read $ complete $ (\(xl, _ : xr) -> (xl, xr)) $ break (== '_') as
   where
     complete :: (String, String) -> (String, String)
     complete (bl, []) = (bl, "1")
     complete (bl, br) = (bl, br)
-    splitOn :: Eq a => (a -> Bool) -> [a] -> ([a], [a])
-    splitOn f xs = (xl, tail' $ xs \\ xl)
-      where
-        tail' [] = []
-        tail' as = tail as
-        xl = takeWhile (not . f) xs
 
 -- | Parses the formula and folds it x times
 parseFormula :: String -> Int -> Either String [Element]
@@ -147,6 +142,10 @@ foldParseFormula :: String -> Either String [Element]
 foldParseFormula x =
   filter (\(Leaf (_, xr)) -> xr /= 0) . combineSames . concatMap untilLeafArray
     <$> parseFormula x 1
+
+fromLeaf :: SyntaxTree a b -> Maybe (a, b)
+fromLeaf (Leaf x) = Just x
+fromLeaf (Branch _) = Nothing
 
 applyNTimes :: Int -> (a -> a) -> a -> a
 applyNTimes 0 _ x = x
