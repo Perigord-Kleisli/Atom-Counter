@@ -28,7 +28,7 @@ lobby
     )
     | sum (fromEnum <$> [showHaskCode, showLatex, isTableMode]) > 1 = Left $ putStrLn "Error: output method mixing"
     | sum (fromEnum <$> [showHaskCode, showLatex, isTableMode]) == 0 = metaParse $ O.elemsToStr O.toSubscript
-    | isTableMode = either (Left . putStrLn) Right $ O.tableMode show $ concat xr
+    | isTableMode = either (Left . putStrLn) Right $ O.tableMode $ concat xr
     | showVersion = Right $ "Version: " ++ Data.Version.showVersion Paths_Atom_counter.version
     | showHaskCode = metaParse show
     | showLatex = metaParse $ (\a b -> ("(\\" ++) $ (++ "\\)") $ O.elemsToStr a b) O.toLatexSub
