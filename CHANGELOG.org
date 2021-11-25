@@ -9,3 +9,6 @@
 
 * 0.1.4.0 -- 2021-11-22
 ** Table mode almost complete, bugs to be fixed by the next update
+
+* 1.0.0.0 -- 2021-11-25
+** Probably final update, table mode is still ridden with bugs and interactive mode is not as pleasant as it can be though other parts seem to be doing just fine

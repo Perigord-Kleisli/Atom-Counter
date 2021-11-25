@@ -82,70 +82,62 @@ respaceString n xs = replicate l ' ' ++ xs ++ replicate r ' '
   where
     (l, r) = (\x -> (floor x, ceiling x)) (fromIntegral (n - length xs) / 2)
 
--- tableMode :: (Int -> String) -> String -> Either String String
--- tableMode iToS xs = stringTable
---   where
---     -- This became more verbose than what I imagined
---     stringTable = divider >>= \div -> spacedTable <&> (div ++) . (++ div) . intercalate div -- The table as a single String
---     surround x = "|" ++ x ++ "|\n" -- Adds the outer borders of the table
---     divider = surround . intercalate "+" . map (`replicate` '-') <$> sequence maxWidths -- Adds the horizontal dividers of the table
---     spacedTable =
---       -- Equalizes collumn width and adds borders cellwise
---       sequence maxWidths >>= \mw ->
---         table
---           <&> map (surround . intercalate "|" . zipWith respaceString mw)
---     maxWidths =
---       -- The highest width cells of every collumn
---       let maxVal n = length . maximumBy (compare `on` length) . map (!! n) <$> table
---        in [maxVal 0, maxVal 1, maxVal 2]
---     table = (["", " Reactant ", " Product "] :) . map (map (\x -> " " ++ x ++ " ")) <$> xy -- Places all the elements in a 2d list
---     xy = map (\[Leaf (x, y), Leaf (_, y2)] -> [x, iToS y, iToS y2]) <$> xyGrouped
---       where
---         xyGrouped =
---           either Left (\y -> if all ((>= 2) . length) y then Right y else Left $ "Elements unique to one collumn" ++ show y) $
---             groupBy ((==) `on` leafName)
---               . sortBy (compare `on` leafName)
---               . concat
---               <$> sequence [xl, xr]
---     leafName (Leaf (y, _)) = y -- simple helper function for getting the element name
---     leafName y = error $ "Not a leaf " ++ show y
---     (xl, xr) =
---       -- Elements seperated by the middle arrow
---       let (xl', xr') = break (\x -> x == "->" || x == "\\rightarrow" || x == "→") $ words xs
---           f = fmap (combineSames . concat) . mapM foldParseFormula' . init . flip tupListBy (all isNumber)
---        in (f xl', either Left f $ tail' xr')
---       where
---         tail' [] = Left "No divider"
---         tail' x = Right $ tail x
---     foldParseFormula' (yl, yr) =
---       -- multiplies all the elements by a preceeding multiplier
---       fmap (map (\(Leaf z) -> Leaf $ second (* (read (if null yl then "1" else yl) :: Int)) z) . concat)
---         <$> mapM foldParseFormula
---         $ filter (all (\x -> isAlphaNum x || x == '_')) yr
 tableMode :: String -> Either String String
-tableMode xs = Left $ show digits ++ show blanks
+tableMode xs = stringTable
   where
-    xlr =
-      if ((==) `on` length) blanks digits
-        then Right $ zip digits blanks
-        else Left "Coeffients and blanks are not equal in count"
+    -- This became more verbose than what I imagined
+    stringTable = divider >>= \div -> spacedTable <&> (div ++) . (++ div) . intercalate div -- The table as a single String
+    surround x = "|" ++ x ++ "|\n" -- Adds the outer borders of the table
+    divider = surround . intercalate "+" . map (`replicate` '-') <$> sequence maxWidths -- Adds the horizontal dividers of the table
+    spacedTable =
+      -- Equalizes collumn width and adds borders cellwise
+      sequence maxWidths >>= \mw ->
+        table
+          <&> map (surround . intercalate "|" . zipWith respaceString mw)
+    maxWidths =
+      -- The highest width cells of every collumn
+      let maxVal n = length . maximumBy (compare `on` length) . map (!! n) <$> table
+       in [maxVal 0, maxVal 1, maxVal 2]
+    table = (["", " Reactant ", " Product "] :) . map (map (\x -> " " ++ x ++ " ")) <$> xy -- Places all the elements in a 2d list
+    xy = map (\[Leaf (x, y), Leaf (_, y2)] -> [x, show y, show y2]) <$> xyGrouped
+      where
+        xyGrouped =
+          either Left (\y -> if all ((>= 2) . length) y then Right y else Left $ "Elements unique to one collumn " ++ show y) $
+            groupBy ((==) `on` leafName)
+              . sortBy (compare `on` leafName)
+              . concat
+              <$> sequence [xl, xr]
 
-    (xl, xr) = break (or . zipWith (==) possibleDividers . repeat) xs'
+    leafName (Leaf (y, _)) = y -- simple helper function for getting the element name
+    leafName y = error $ "Not a leaf " ++ show y
 
-    divider =
-      (\x -> if length x /= 1 then Left "Invalid number of dividers" else Right $ head x)
-        . filter (or . zipWith (==) possibleDividers . repeat)
-        $ xs'
+    -- Elements seperated by the middle arrow
+    (xl, xr) = either (\x -> (Left x, Left x)) id xlxr
+    xlxr =
+      let xls = replaceBlanks xs <&> break (or . zipWith (==) possibleDividers . repeat) . words
+          f = fmap (combineSames . concat) . mapM foldParseFormula' . init . flip tupListBy (all isNumber)
+       in bimap f (either Left f . tail') <$> xls
+      where
+        -- in (f xl', either Left f $ tail' xr')
 
-    possibleDividers = ["->", "→", "\\rightarrow"]
-    partedVals@[blanks, digits, xs'] = partitionOn [(=~ [r|^_+.*|]), all isDigit, (True `const`)] $ words xs
+        possibleDividers = ["->", "→", "\\rightarrow"]
+        tail' [] = Left "No divider"
+        tail' x = Right $ tail x
+
+    -- multiplies all the elements by a preceeding multiplier
+    foldParseFormula' (yl, yr) =
+      fmap (map (\(Leaf z) -> Leaf $ second (* (read (if null yl then "1" else yl) :: Int)) z) . concat)
+        <$> mapM foldParseFormula
+        $ filter (all (\x -> isAlphaNum x || x == '_')) yr
+
+-- partedVals@[blanks, digits, xs'] = partitionOn [(=~ [r|^_+.*|]), all isDigit, (True `const`)] $ words xs
 
 -- | "_Au + _Cd -> Ln 2 3" =: "2 Au + 3 Cd -> Ln"
 replaceBlanks :: String -> Either String String
 replaceBlanks xs =
   if ((==) `on` length) blanks digits
     then Right $ unwords $ take (length xs' - length digits) $ concatIfEqual unblanks xs'
-    else Left "Imbalanced number of digits and blank spaces"
+    else Left "Coeffients and blanks are not equal in count"
   where
     concatIfEqual [] [] = [[]]
     concatIfEqual [] y2 = y2

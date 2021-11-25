@@ -28,6 +28,7 @@ lobby
     )
     | sum (fromEnum <$> [showHaskCode, showLatex, isTableMode]) > 1 = Left $ putStrLn "Error: output method mixing"
     | sum (fromEnum <$> [showHaskCode, showLatex, isTableMode]) == 0 = metaParse $ O.elemsToStr O.toSubscript
+    | isInteractive && isTableMode = O.interactiveTable
     | isTableMode = either (Left . putStrLn) Right $ O.tableMode $ concat xr
     | showVersion = Right $ "Version: " ++ Data.Version.showVersion Paths_Atom_counter.version
     | showHaskCode = metaParse show
@@ -37,7 +38,6 @@ lobby
       metaParse :: ([P.Element] -> String) -> Either (IO ()) String
       metaParse f
         | isInteractive = O.interactiveMode f parseFormula'
-        | isInteractive && isTableMode = O.interactiveTable
         | otherwise = either (Left . putStrLn) Right $ unwords <$> mapM (fmap f . parseFormula') xr
       parseFormula' :: (String -> Either String [P.Element])
       parseFormula'
