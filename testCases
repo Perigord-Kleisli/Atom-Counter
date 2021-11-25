@@ -1,7 +1,0 @@
-#!/bin/bash
-for i in "Bb_2" "Bb_0" "(Cb)_2" "(Cb_0)Cb_2(Cd_20)_0" "(Cb_2)_2Cb_2(Cb_20)_2" "(Cb_2)__2Cb_2(Cb_20)_2" "Aaa_2" "Ax_3Bc_2" "()()Ax_3Bc_2" "Ax_3(B)B_2"
-do
-    echo -e "\033[32m$i: \033[0m"
-    cabal run Atom-counter:Atom-Counter -- "$i" -f
-    echo -e "-------------------\n"
-    done
