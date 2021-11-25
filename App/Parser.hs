@@ -1,5 +1,4 @@
 {-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -haddock #-}
 
 -- Converts Strings into arrays of Elements
@@ -18,8 +17,8 @@ import Data.Either
     partitionEithers,
     rights,
   )
-import Data.Function ()
-import Data.List (groupBy, (\\))
+import Data.Function (on)
+import Data.List (groupBy, sortBy, (\\))
 import Text.RawString.QQ (r)
 import Text.Regex.PCRE (MatchResult (mrBefore), (=~))
 
@@ -92,8 +91,10 @@ formToSTree (Right ('(' : as))
     complete :: String -> Int
     complete [] = 1
     complete b = read b :: Int
-formToSTree (Right as) = Right $ Leaf $ second read $ complete $ (\(xl, _ : xr) -> (xl, xr)) $ break (== '_') as
+formToSTree (Right as) = Right $ Leaf $ second read $ complete $ second tail' $ break (== '_') as
   where
+    tail' [] = []
+    tail' x = tail x
     complete :: (String, String) -> (String, String)
     complete (bl, []) = (bl, "1")
     complete (bl, br) = (bl, br)
@@ -131,7 +132,7 @@ minimalFormula (Right x) = undefined
 combineSames :: [Element] -> [Element]
 combineSames x =
   map (Leaf . foldl (\(_, ar) (bl, br) -> (bl, ar + br)) ("", 0)) $
-    groupBy (\(a, _) (b, _) -> a == b) $ map (\(Leaf x) -> x) x
+    groupBy (\(a, _) (b, _) -> a == b) $ sortBy (\(a, _) (b, _) -> compare a b) $ map (\(Leaf x) -> x) x
 
 -- | Repeatedly folds a branch until it is comprised only by leaves then combines everything with the same names
 untilLeafArray :: Element -> [Element]

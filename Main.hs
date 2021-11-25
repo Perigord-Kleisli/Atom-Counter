@@ -16,7 +16,7 @@ lobby :: (A.Options, [String]) -> Either (IO ()) String
 lobby
   ( A.Options
       { A.optInteractive = isInteractive,
-        A.optBalancing = isBalanceMode,
+        A.optTable = isTableMode,
         A.optLatex = showLatex,
         A.optShow = showHaskCode,
         A.optVersion = showVersion,
@@ -26,8 +26,9 @@ lobby
       },
     xr
     )
-    | sum (fromEnum <$> [showHaskCode, showLatex]) > 1 = Left $ putStrLn "Error: output method mixing"
-    | sum (fromEnum <$> [showHaskCode, showLatex]) == 0 = metaParse $ O.elemsToStr O.toSubscript
+    | sum (fromEnum <$> [showHaskCode, showLatex, isTableMode]) > 1 = Left $ putStrLn "Error: output method mixing"
+    | sum (fromEnum <$> [showHaskCode, showLatex, isTableMode]) == 0 = metaParse $ O.elemsToStr O.toSubscript
+    | isTableMode = either (Left . putStrLn) Right $ O.tableMode show $ concat xr
     | showVersion = Right $ "Version: " ++ Data.Version.showVersion Paths_Atom_counter.version
     | showHaskCode = metaParse show
     | showLatex = metaParse $ (\a b -> ("(\\" ++) $ (++ "\\)") $ O.elemsToStr a b) O.toLatexSub
@@ -36,6 +37,7 @@ lobby
       metaParse :: ([P.Element] -> String) -> Either (IO ()) String
       metaParse f
         | isInteractive = O.interactiveMode f parseFormula'
+        | isInteractive && isTableMode = O.interactiveTable
         | otherwise = either (Left . putStrLn) Right $ unwords <$> mapM (fmap f . parseFormula') xr
       parseFormula' :: (String -> Either String [P.Element])
       parseFormula'

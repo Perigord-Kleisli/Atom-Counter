@@ -10,7 +10,7 @@ import Text.RawString.QQ
 data Options = Options
   { optInteractive :: Bool,
     optHelpPage :: Bool,
-    optBalancing :: Bool,
+    optTable :: Bool,
     optLatex :: Bool,
     optShow :: Bool,
     optVersion :: Bool,
@@ -24,7 +24,7 @@ defaultOptions =
   Options
     { optInteractive = False,
       optHelpPage = False,
-      optBalancing = False,
+      optTable = False,
       optLatex = False,
       optShow = False,
       optVersion = False,
@@ -41,9 +41,9 @@ options =
       (NoArg (\opts -> opts {optInteractive = True}))
       "Use STDIN instead of console arguments, type :q to quit",
     Option
-      ['b', 'B']
-      ["balance"]
-      (NoArg (\opts -> opts {optBalancing = True}))
+      ['t', 'T']
+      ["table"]
+      (NoArg (\opts -> opts {optTable = True}))
       "Unsubscripted Numbers gets treated as multipliers, arrays of arguments also get accepted with symbols other than parenthesis acting as delimeters",
     Option
       ['l', 'L']
