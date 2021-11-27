@@ -23,6 +23,9 @@ toSubscript = map (chr . (+ 8272) . ord) . show
 toLatexSub :: Int -> String
 toLatexSub x = "_{" ++ show x ++ "}"
 
+toInput :: Int -> String
+toInput = ("_" ++) . show
+
 elemsToStr :: (Int -> String) -> [Element] -> String
 elemsToStr f = concatMap fromElem
   where
@@ -147,7 +150,7 @@ replaceBlanks xs =
         then (y1l ++ " " ++ dropWhile (== '_') y1r) : concatIfEqual y1s y2s
         else y2 : concatIfEqual ylr y2s
     unblanks = zip digits blanks
-    partedVals@[blanks, digits, xs'] = partitionOn [(=~ [r|^_+.*|]), all isDigit, (True `const`)] $ words xs
+    partedVals@[blanks, digits, xs'] = partitionOn [(=~ [r|^\\?_+.*|]), all isDigit, (True `const`)] $ words xs
 
 -- | Partitions a list where the level is based on whichever argument from the function list it becomes true in,
 --

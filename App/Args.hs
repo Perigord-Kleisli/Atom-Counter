@@ -13,6 +13,7 @@ data Options = Options
     optTable :: Bool,
     optLatex :: Bool,
     optShow :: Bool,
+    optToIn :: Bool,
     optVersion :: Bool,
     optFold :: Bool,
     optFolds :: Int,
@@ -27,6 +28,7 @@ defaultOptions =
       optTable = False,
       optLatex = False,
       optShow = False,
+      optToIn = False,
       optVersion = False,
       optFold = False,
       optFolds = 0,
@@ -36,10 +38,15 @@ defaultOptions =
 options :: [OptDescr (Options -> Options)]
 options =
   [ Option
-      ['i', 'I']
+      ['I']
       ["interactive"]
       (NoArg (\opts -> opts {optInteractive = True}))
       "Use STDIN instead of console arguments, type :q to quit",
+    Option
+      ['i']
+      ["interactive"]
+      (NoArg (\opts -> opts {optToIn = True}))
+      "Send output as output recognizable by the input",
     Option
       ['t', 'T']
       ["table"]

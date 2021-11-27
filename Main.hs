@@ -21,16 +21,18 @@ lobby
         A.optShow = showHaskCode,
         A.optVersion = showVersion,
         A.optFold = maxFold,
+        A.optToIn = showIn,
         A.optFolds = numOfFolds,
         A.optDebug = isDebug
       },
     xr
     )
-    | sum (fromEnum <$> [showHaskCode, showLatex, isTableMode]) > 1 = Left $ putStrLn "Error: output method mixing"
-    | sum (fromEnum <$> [showHaskCode, showLatex, isTableMode]) == 0 = metaParse $ O.elemsToStr O.toSubscript
+    | sum (fromEnum <$> [showHaskCode, showLatex, isTableMode, showIn]) > 1 = Left $ putStrLn "Error: output method mixing"
+    | sum (fromEnum <$> [showHaskCode, showLatex, isTableMode, showIn]) == 0 = metaParse $ O.elemsToStr O.toSubscript
     | isInteractive && isTableMode = O.interactiveTable
-    | isTableMode = either (Left . putStrLn) Right $ O.tableMode $ concat xr
+    | isTableMode = either (Left . putStrLn) Right $ O.tableMode $ filter (/= '\\') $ concat xr
     | showVersion = Right $ "Version: " ++ Data.Version.showVersion Paths_Atom_counter.version
+    | showIn = metaParse $ O.elemsToStr O.toInput
     | showHaskCode = metaParse show
     | showLatex = metaParse $ (\a b -> ("(\\" ++) $ (++ "\\)") $ O.elemsToStr a b) O.toLatexSub
     | otherwise = Left $ putStrLn "Error"
