@@ -40,10 +40,11 @@ flattenForm xs = applyUntil (all isElem) (concatMap foldForm) $ groupForm xs
 reactProdP :: Parser ([Element], [Element])
 reactProdP =
   ((,) `on` (flattenForm . concat))
-    <$> formulaP `sepByParser` charP '+'
+    <$> formulaP' `sepByParser` charP '+'
     <*> (whiteSpace *> separators 
-        *> formulaP `sepByParser` charP '+')
+        *> formulaP' `sepByParser` charP '+')
  where
+  formulaP' = (\a b -> map (onLeaforBranch (second (*a)) (second (*a))) b) <$> (whiteSpace *> numP <|> pure 1) <*> formulaP
   separators = foldr1 (<|>) [ stringP x | x <- ["->", "→", "\\rightarrow"] ]
 
 

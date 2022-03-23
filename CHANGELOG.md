@@ -30,3 +30,7 @@
          :i -- Print options
   ```
   * Accidentally made table mode useless 
+
+
+* 2.0.0.1 -- 2022-03-23
+  ** Made table mode useful again
